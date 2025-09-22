@@ -6,7 +6,7 @@ from organistion_list import OrganisationList
 from organisation import Organisation
 from playwright.sync_api import sync_playwright
 
-class scraper:
+class Scraper:
     def __init__(self, website: str, out_dir: pathlib.Path):
         self.website = website
         self.output_dir = out_dir
@@ -116,7 +116,7 @@ def main(category: str, location: str, item_count: int, out_dir: pathlib.Path):
         print("Output directory {} is not a directory, you must specify a directory".format(out_dir))
         sys.exit(1)
 
-    scrapper_instance = scraper("https://www.google.com/maps", out_dir)
+    scrapper_instance = Scraper("https://www.google.com/maps", out_dir)
     org_list = scrapper_instance.scrape(category, location, item_count)
 
     org_list.save_to_csv(f"{category}_in_{location}_google_maps")
