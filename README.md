@@ -34,7 +34,7 @@ To install the required packages to the virtual environment run
 **Windows:**
 > .\venv_3-13\Scripts\Activate.ps1
 
-***nix**
+***nix** (Including MacOS Darwin) 
 > .\venv_3-13\Scripts\activate
 
 4. Install the playwright drivers
