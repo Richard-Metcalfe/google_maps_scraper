@@ -30,7 +30,7 @@ The packages required to run the program are recorded in the file **_requirement
 > .\venv_3-13\Scripts\Activate.ps1
 
 ***nix** (Including MacOS Darwin) 
-> source venv_3-13/Scripts/activate
+> source venv_3-13/bin/activate
 
 3. Install the requirements
 
