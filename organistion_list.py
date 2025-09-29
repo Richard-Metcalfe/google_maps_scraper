@@ -10,15 +10,23 @@ class OrganisationList:
     """
     def __init__(self, directory_path: Path):
         self.output_directory = directory_path
-        self.business_list: list[Organisation] = []
+        self.__organisations: list[Organisation] = []
     
     def dataframe(self):
         """transform business_list to pandas dataframe
 
         Returns: pandas dataframe
         """
-        data = list(asdict(org) for org in self.business_list)
+        data = list(asdict(org) for org in self.__organisations)
         return pd.json_normalize(data, sep="_")
+    
+    def append(self, org: Organisation):
+        """append Organisation object to list
+
+        Args:
+            org (Organisation): Organisation object
+        """
+        self.__organisations.append(org)
 
     def check_path_exists(self):
         """checks if output directory exists, if not creates it

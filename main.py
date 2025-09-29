@@ -69,9 +69,9 @@ class Scraper:
 
                     org_obj = Organisation()
 
-                    attr_name = listing.get_attribute(name_attribute)
-                    if attr_name is not None and len(attr_name) >= 1:
-                        org_obj.organisation_name = attr_name
+                    org_name = listing.get_attribute(name_attribute)
+                    if org_name is not None and len(org_name) >= 1:
+                        org_obj.organisation_name = org_name
                     else:
                         org_obj.organisation_name = ""
 
@@ -96,13 +96,13 @@ class Scraper:
                     else:
                         org_obj.average_review_count = 0
 
-                    name_attr = page.locator(average_review_points_xpath).get_attribute(name_attribute)
-                    if page.locator(average_review_points_xpath).count() > 0 and name_attr is not None:
-                        org_obj.average_review_points = float(name_attr.split()[0].replace(',', '.').strip())
+                    review_points = page.locator(average_review_points_xpath).get_attribute(name_attribute)
+                    if page.locator(average_review_points_xpath).count() > 0 and review_points is not None:
+                        org_obj.average_review_points = float(review_points.split()[0].replace(',', '.').strip())
                     else:
                         org_obj.average_review_points = 0.0
 
-                    org_list.business_list.append(org_obj)
+                    org_list.append(org_obj)
                     bar()
 
             browser.close()
