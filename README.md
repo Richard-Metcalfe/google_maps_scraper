@@ -17,6 +17,7 @@ After installing Python it's easiest to create a virtual environment. E.g. for p
 **N.B.** This program is currently hardcoded to scape  [www.google.com/maps](https://www.google.com/maps) - other websites will require further work. It is necessary to manually accept cookies after the browser opens. 
 
 ## Steps ##
+**N.B.** After initial step you only need to perform steps 2 and 7 to run the run the scraper.
 
 ### 1. Open a terminal change directory to the project root
 
