@@ -24,18 +24,18 @@ After installing Python it's easiest to create a virtual environment. E.g. for p
 
 The packages required to run the program are recorded in the file **_requirements.txt_**. This allows easy creation of a virtual execution environment for the program.
 
-2. Install the requirements
-
-To install the required packages to the virtual environment run
-> pip install -r requirements.txt
-
-3. Start the virtual Environment open a terminal and run
-
+2. Start the virtual Environment open a terminal and run
 **Windows:**
 > .\venv_3-13\Scripts\Activate.ps1
 
 ***nix** (Including MacOS Darwin) 
-> .\venv_3-13\Scripts\activate
+> source venv_3-13/Scripts/activate
+
+3. Install the requirements
+
+To install the required packages to the virtual environment run
+> pip install -r requirements.txt
+
 
 4. Install the playwright drivers
 
