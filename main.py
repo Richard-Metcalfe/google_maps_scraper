@@ -69,9 +69,9 @@ class Scraper:
 
                     org_obj = Organisation()
 
-                    if listing.get_attribute(name_attribute) is not None:
-                        if len(listing.get_attribute(name_attribute)) >= 1:
-                            org_obj.organisation_name = listing.get_attribute(name_attribute)
+                    attr_name = listing.get_attribute(name_attribute)
+                    if attr_name is not None and len(attr_name) >= 1:
+                        org_obj.organisation_name = attr_name
                     else:
                         org_obj.organisation_name = ""
 
@@ -96,8 +96,9 @@ class Scraper:
                     else:
                         org_obj.average_review_count = 0
 
-                    if page.locator(average_review_points_xpath).count() > 0:
-                        org_obj.average_review_points = float(page.locator(average_review_points_xpath).get_attribute(name_attribute).split()[0].replace(',', '.').strip())
+                    name_attr = page.locator(average_review_points_xpath).get_attribute(name_attribute)
+                    if page.locator(average_review_points_xpath).count() > 0 and name_attr is not None:
+                        org_obj.average_review_points = float(name_attr.split()[0].replace(',', '.').strip())
                     else:
                         org_obj.average_review_points = 0.0
 
@@ -116,6 +117,7 @@ def main(category: str, location: str, item_count: int, out_dir: pathlib.Path):
         print("Output directory {} is not a directory, you must specify a directory".format(out_dir))
         sys.exit(1)
 
+    # hardcoode website for now
     scrapper_instance = Scraper("https://www.google.com/maps", out_dir)
     org_list = scrapper_instance.scrape(category, location, item_count)
 

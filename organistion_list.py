@@ -17,9 +17,8 @@ class OrganisationList:
 
         Returns: pandas dataframe
         """
-        return pd.json_normalize(
-            (asdict(org) for org in self.business_list), sep="_"
-        )
+        data = list(asdict(org) for org in self.business_list)
+        return pd.json_normalize(data, sep="_")
 
     def check_path_exists(self):
         """checks if output directory exists, if not creates it
