@@ -45,6 +45,7 @@ To install the required packages to the virtual environment run
 
 **Windows**
 >  python .\main.py --help
+
 ***nix**
 > python main.py --help
 
@@ -52,5 +53,6 @@ To install the required packages to the virtual environment run
 6. Run the program with your category and location
 **Windows**
 >  python .\main.py --category "Roofers" --location "Manchester" --number 10
+
 ***nix**
 > python main.py --category "Roofers" --location "Manchester" --number 10
