@@ -2,7 +2,7 @@ import argparse
 import pathlib
 import sys
 from alive_progress import alive_bar
-from organistion_list import OrganisationList
+from organistion_list import OrganistionList
 from organisation import Organisation
 from playwright.sync_api import sync_playwright
 
@@ -11,7 +11,7 @@ class Scraper:
         self.website = website
         self.output_dir = out_dir
 
-    def scrape(self, category: str, location: str, item_count: int) -> OrganisationList:
+    def scrape(self, category: str, location: str, item_count: int) -> OrganistionList:
         with sync_playwright() as pw:
             browser = pw.chromium.launch(headless=False)
             page = browser.new_page()
@@ -27,6 +27,7 @@ class Scraper:
 
             place_addr = "{}/place".format(self.website)
             page.hover('//a[contains(@href, "{}")]'.format(place_addr))
+
 
             previously_counted = 0
             print("Navigating search results ...")
@@ -52,7 +53,9 @@ class Scraper:
                         print("Running Total: {}".format(current_count))
                         bar()
         
-            org_list = OrganisationList(out_dir)
+            #org_list = OrganisationList(out_dir)
+            org_list = OrganistionList()
+
             print("Processing organistion data ...")
 
             with alive_bar(len(listings)) as bar:
@@ -121,15 +124,12 @@ def main(category: str, location: str, item_count: int, out_dir: pathlib.Path):
     scrapper_instance = Scraper("https://www.google.com/maps", out_dir)
     org_list = scrapper_instance.scrape(category, location, item_count)
 
-    org_list.save_to_csv(f"{category}_in_{location}_google_maps")
+    org_list.save_to_csv(out_dir, f"{category}_in_{location}_google_maps")
     
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory", required=True, type=int, help="the directory to monitor")
-
-    parser = argparse.ArgumentParser(prog='Google Maps Webscapper',
-                                     description='Collects business data from Google Maps')
+    parser = argparse.ArgumentParser(prog='Google Maps Webscapper', description='Retrieves business data from Google Maps')
     parser.add_argument("-c", "--category", help="the business type to search for", type=str, required=True)
     parser.add_argument("-l", "--location", help="the map location to search", type=str, required=True)
     parser.add_argument("-n", "--number", help="the number of businesses search for", type=int, default=500)

@@ -9,4 +9,4 @@ class Organisation:
     website: Optional[str] = None
     average_review_count: int = 0
     average_review_points: float = 0.0
-    email: Optional[str] = None
+    email: Optional[list[str]] = None
