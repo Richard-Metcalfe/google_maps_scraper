@@ -79,7 +79,7 @@ def main(directory: pathlib.Path, filename: str):
     org_list.read_from_csv(file)
 
     updated_org_list = scape_emails_from_domains(org_list)
-    filestem = pathlib.Path(filename).name
+    filestem = pathlib.Path(filename).stem
     updated_org_list.save_to_csv(directory, filestem + "_with_emails")
 
 
