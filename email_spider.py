@@ -14,6 +14,7 @@ class EmailSpider(CrawlSpider):
         'DOWNLOAD_DELAY': 1,  # Delay between requests to avoid overloading the server
         'CONCURRENT_REQUESTS_PER_DOMAIN': 8,
         'FEED_FORMAT': 'json',
+        'LOG_LEVEL': 'CRITICAL' # Set log level to ERROR to reduce output
     }
 
     # Define rules for following links

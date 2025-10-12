@@ -5,6 +5,7 @@ from alive_progress import alive_bar
 from organistion_list import OrganistionList
 from organisation import Organisation
 from playwright.sync_api import sync_playwright
+from email_scraper import scape_emails_from_domains
 
 class Scraper:
     def __init__(self, website: str, out_dir: pathlib.Path):
@@ -112,7 +113,7 @@ class Scraper:
             return org_list    
 
 
-def main(category: str, location: str, item_count: int, out_dir: pathlib.Path):
+def main(category: str, location: str, item_count: int, out_dir: pathlib.Path, scrape_emails: bool):
     if not out_dir.exists():
         print("Output directory {} does not exist, creating it".format(out_dir))
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -124,7 +125,15 @@ def main(category: str, location: str, item_count: int, out_dir: pathlib.Path):
     scrapper_instance = Scraper("https://www.google.com/maps", out_dir)
     org_list = scrapper_instance.scrape(category, location, item_count)
 
-    org_list.save_to_csv(out_dir, f"{category}_in_{location}_google_maps")
+    file_suffix = "google_maps"
+    if scrape_emails is True:
+        print("Attempting to retrieve email addresses")
+        file_suffix += "_with_emails"
+        org_list = scape_emails_from_domains(org_list)
+    else:
+        print("Skipping email retrieval ...")
+ 
+    org_list.save_to_csv(out_dir, "{}_in_{}_{}".format(category, location, file_suffix))
     
 
 if __name__ == '__main__':
@@ -134,9 +143,10 @@ if __name__ == '__main__':
     parser.add_argument("-l", "--location", help="the map location to search", type=str, required=True)
     parser.add_argument("-n", "--number", help="the number of businesses search for", type=int, default=500)
     parser.add_argument('-o', '--out_directory', help='the location to save the data', type=pathlib.Path, required=False, default=pathlib.Path('./output'))
+    parser.add_argument('-e', '--scrape_emails', help='attempt to retrieve email address from the web domains found', required=False, default=False, action='store_true')
 
     parsed_args = parser.parse_args()
     out_dir=parsed_args.out_directory
 
-    main(category=parsed_args.category, location=parsed_args.location, item_count=parsed_args.number, out_dir=out_dir)
+    main(category=parsed_args.category, location=parsed_args.location, item_count=parsed_args.number, out_dir=out_dir, scrape_emails=parsed_args.scrape_emails)
 
