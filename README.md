@@ -70,6 +70,10 @@ To install the required packages to the virtual environment run
 > python main.py --category "Roofers" --location "Manchester" --number 10
 
 ## Searching for email addresses by domain
+If you want the scraper to search for email address in any webdomain found then add the argument _**--scrape_emails**_ to the command line 
+
+> python main.py --category "Plumbers" --location "Rutland UK" --number 5 --scrape_emails
+
 The google maps webscraper retrieves the company domain that hosts the company website. The email scraper attempts to retrieve email addresses from pages within that domain using a web spider and parsing the static content of the webpages. This won't find email addresses in dymamically created webpages that retrieve data from another source. 
 
 The standalone email scraper with read data from a CSV file specified on the command line - one that was created from a previous google maps scrape. It will then iterate over rows and if a web-domain is present for that entry it will attempt to crawl the web-domain for email addresses, if found it will store then in another file with the suffix _**_with_emails**_. 
