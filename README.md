@@ -77,6 +77,10 @@ For large data set or web-domains with a lot of pages, this will take a while an
 
     The command
 
+**Windows**
 > python .\email_scraper.py --file "Roofers_in_Manchester_google_maps.csv"
 
-    will create a new CSV file with the name Roofers_in_Manchester_google_maps_with_emails.csv
+***nix**
+> python email_scraper.py --file "Roofers_in_Manchester_google_maps.csv"
+
+will create a new CSV file with the name Roofers_in_Manchester_google_maps_with_emails.csv
