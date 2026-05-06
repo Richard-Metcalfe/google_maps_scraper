@@ -70,53 +70,38 @@ class Scraper:
 
             print("Processing organistion data ...")
 
+            name_attribute = 'aria-label'
+            location_xpath = '//button[@data-item-id="address"]//div[contains(@class, "fontBodyMedium")]'
+            website_xpath = '//a[@data-item-id="authority"]//div[contains(@class, "fontBodyMedium")]'
+            contact_number_xpath = '//button[contains(@data-item-id, "phone:tel:")]//div[contains(@class, "fontBodyMedium")]'
+            average_review_count_xpath = '//div[@jsaction="pane.reviewChart.moreReviews"]//span'
+            average_review_points_xpath = '//div[@jsaction="pane.reviewChart.moreReviews"]//div[@role="img"]'
+
+            def extract_organisation_data(page, listing):
+                org_obj = Organisation()
+
+                org_name = listing.get_attribute(name_attribute)
+                org_obj.organisation_name = org_name if org_name is not None and len(org_name) >= 1 else ""
+
+                org_obj.organisation_location = page.locator(location_xpath).all()[0].inner_text() if page.locator(location_xpath).count() > 0 else ""
+
+                org_obj.website = page.locator(website_xpath).all()[0].inner_text() if page.locator(website_xpath).count() > 0 else ""
+
+                org_obj.contact_number = page.locator(contact_number_xpath).all()[0].inner_text() if page.locator(contact_number_xpath).count() > 0 else ""
+
+                org_obj.average_review_count = int(page.locator(average_review_count_xpath).inner_text().split()[0].replace(',', '').strip()) if page.locator(average_review_count_xpath).count() > 0 else 0
+
+                review_points = page.locator(average_review_points_xpath).get_attribute(name_attribute)
+                org_obj.average_review_points = float(review_points.split()[0].replace(',', '.').strip()) if page.locator(average_review_points_xpath).count() > 0 and review_points is not None else 0.0
+
+                return org_obj
+
             with alive_bar(len(listings)) as bar:
                 for listing in listings:
                     listing.click()
                     page.wait_for_timeout(5000)
 
-                    name_attribute = 'aria-label'
-                    location_xpath = '//button[@data-item-id="address"]//div[contains(@class, "fontBodyMedium")]'
-                    website_xpath = '//a[@data-item-id="authority"]//div[contains(@class, "fontBodyMedium")]'
-                    contact_number_xpath = '//button[contains(@data-item-id, "phone:tel:")]//div[contains(@class, "fontBodyMedium")]'
-                    average_review_count_xpath = '//div[@jsaction="pane.reviewChart.moreReviews"]//span'
-                    average_review_points_xpath = '//div[@jsaction="pane.reviewChart.moreReviews"]//div[@role="img"]'
-
-                    org_obj = Organisation()
-
-                    org_name = listing.get_attribute(name_attribute)
-                    if org_name is not None and len(org_name) >= 1:
-                        org_obj.organisation_name = org_name
-                    else:
-                        org_obj.organisation_name = ""
-
-                    if page.locator(location_xpath).count() > 0:
-                        org_obj.organisation_location = page.locator(location_xpath).all()[0].inner_text()
-                    else:
-                        org_obj.organisation_location = ""
-
-                    if page.locator(website_xpath).count() > 0:
-                        org_obj.website = page.locator(website_xpath).all()[0].inner_text()
-                    else:
-                        org_obj.website = ""
-
-                    if page.locator(contact_number_xpath).count() > 0:
-                        org_obj.contact_number = page.locator(contact_number_xpath).all()[0].inner_text()
-                    else:
-                        org_obj.contact_number = ""
-
-                    if page.locator(average_review_count_xpath).count() > 0:
-                        org_obj.average_review_count = int(page.locator(average_review_count_xpath).inner_text().split()[0]
-                            .replace(',', '').strip())
-                    else:
-                        org_obj.average_review_count = 0
-
-                    review_points = page.locator(average_review_points_xpath).get_attribute(name_attribute)
-                    if page.locator(average_review_points_xpath).count() > 0 and review_points is not None:
-                        org_obj.average_review_points = float(review_points.split()[0].replace(',', '.').strip())
-                    else:
-                        org_obj.average_review_points = 0.0
-
+                    org_obj = extract_organisation_data(page, listing)
                     org_list.append(org_obj)
                     bar()
 
