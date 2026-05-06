@@ -20,15 +20,26 @@ class Scraper:
             page.goto(self.website, timeout=10000)
             page.wait_for_timeout(1000)
 
-            page.locator('//input[@id="searchboxinput"]').fill(category + " " +location)
+            #page.locator('//input[@id="searchboxinput"]').fill(f"{category} {location}", force=True)           
+            # Use the role-based locator which is more reliable an id
+            search_box = page.get_by_role("combobox", name="Search Google Maps")
+
+            # Click to activate the search box
+            search_box.click()
+
+            # Directly fill the search box. Playwright will wait for it to be ready.
+            search_box.fill(f"{category} {location}")
+
+            # The input field is often the next element after the button is clicked.
+            # You might need to target the input that appears or becomes active.   
+
             page.wait_for_timeout(1000)
 
             page.keyboard.press("Enter")
             page.wait_for_timeout(1000)
 
             place_addr = "{}/place".format(self.website)
-            page.hover('//a[contains(@href, "{}")]'.format(place_addr))
-
+            page.hover('//a[contains(@href, "{}")]'.format(place_addr)) 
 
             previously_counted = 0
             print("Navigating search results ...")
@@ -51,7 +62,7 @@ class Scraper:
                         break
                     else:
                         previously_counted = current_count
-                        print("Running Total: {}".format(current_count))
+                        print(f"Running Total: {current_count}")
                         bar()
         
             #org_list = OrganisationList(out_dir)
@@ -115,10 +126,10 @@ class Scraper:
 
 def main(category: str, location: str, item_count: int, out_dir: pathlib.Path, scrape_emails: bool):
     if not out_dir.exists():
-        print("Output directory {} does not exist, creating it".format(out_dir))
+        print(f"Output directory {out_dir} does not exist, creating it")
         out_dir.mkdir(parents=True, exist_ok=True)
     elif not out_dir.is_dir():
-        print("Output directory {} is not a directory, you must specify a directory".format(out_dir))
+        print(f"Output directory {out_dir} is not a directory, you must specify a directory")
         sys.exit(1)
 
     # hardcoode website for now
@@ -126,14 +137,14 @@ def main(category: str, location: str, item_count: int, out_dir: pathlib.Path, s
     org_list = scrapper_instance.scrape(category, location, item_count)
 
     file_suffix = "google_maps"
-    if scrape_emails is True:
+    if scrape_emails:
         print("Attempting to retrieve email addresses")
         file_suffix += "_with_emails"
         org_list = scape_emails_from_domains(org_list)
     else:
         print("Skipping email retrieval ...")
  
-    org_list.save_to_csv(out_dir, "{}_in_{}_{}".format(category, location, file_suffix))
+    org_list.save_to_csv(out_dir, f"{category}_in_{location}_{file_suffix}")
     
 
 if __name__ == '__main__':
@@ -148,5 +159,6 @@ if __name__ == '__main__':
     parsed_args = parser.parse_args()
     out_dir=parsed_args.out_directory
 
-    main(category=parsed_args.category, location=parsed_args.location, item_count=parsed_args.number, out_dir=out_dir, scrape_emails=parsed_args.scrape_emails)
+    result = main(category=parsed_args.category, location=parsed_args.location, item_count=parsed_args.number, out_dir=out_dir, scrape_emails=parsed_args.scrape_emails)
 
+    print(result)
