@@ -18,13 +18,12 @@ class Scraper:
             page = browser.new_page()
 
             page.goto(self.website, timeout=10000)
-            page.wait_for_timeout(1000)
+            #page.wait_for_timeout(1000)
 
             #page.locator('//input[@id="searchboxinput"]').fill(f"{category} {location}", force=True)           
             # Use the role-based locator which is more reliable an id
             search_box = page.get_by_role("combobox", name="Search Google Maps")
-
-            # Click to activate the search box
+            search_box.wait_for(state="visible")            # Click to activate the search box
             search_box.click()
 
             # Directly fill the search box. Playwright will wait for it to be ready.
@@ -32,13 +31,11 @@ class Scraper:
 
             # The input field is often the next element after the button is clicked.
             # You might need to target the input that appears or becomes active.   
-
-            page.wait_for_timeout(1000)
-
+            #page.wait_for_timeout(1000)
             page.keyboard.press("Enter")
-            page.wait_for_timeout(1000)
+            #page.wait_for_timeout(1000)
 
-            place_addr = "{}/place".format(self.website)
+            place_addr = f"{self.website}/place"
             page.hover('//a[contains(@href, "{}")]'.format(place_addr)) 
 
             previously_counted = 0
@@ -47,8 +44,16 @@ class Scraper:
             with alive_bar() as bar:
                 while True:
                     page.mouse.wheel(0, 10000)
-                    page.wait_for_timeout(3000)
-                    current_count = page.locator('//a[contains(@href, "{}")]'.format(place_addr)).count()
+                    locator = page.locator('//a[contains(@href, "{}")]'.format(place_addr))
+
+                    for _ in range(30):  # 30 * 100ms = 3s max
+                        current_count = locator.count()
+                        if current_count > previously_counted:
+                            break
+                        page.wait_for_timeout(100)
+                    else:
+                        # No new results in 3s window
+                        current_count = locator.count() 
 
                     if current_count == previously_counted:
                         # In case retrieved all available listings then break from loop so as not to run infinitely 
@@ -99,8 +104,9 @@ class Scraper:
             with alive_bar(len(listings)) as bar:
                 for listing in listings:
                     listing.click()
-                    page.wait_for_timeout(5000)
-
+                    # Wait for the details pane (address) to update instead of sleeping
+                    page.locator(location_xpath).first.wait_for(state="visible", timeout=10000)
+                    
                     org_obj = extract_organisation_data(page, listing)
                     org_list.append(org_obj)
                     bar()
@@ -146,4 +152,4 @@ if __name__ == '__main__':
 
     result = main(category=parsed_args.category, location=parsed_args.location, item_count=parsed_args.number, out_dir=out_dir, scrape_emails=parsed_args.scrape_emails)
 
-    print(result)
+    #print(result)

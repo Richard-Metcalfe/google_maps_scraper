@@ -63,7 +63,7 @@ class OrganistionList(UserList):
             filename (str): filename
         """
         self.check_path_exists(directory_path)
-        file = directory_path.joinpath("{}.xlsx".format(filename))
+        file = directory_path.joinpath("{filename}.xlsx")
         self.dataframe().to_excel(file, index=False)
 
     def save_to_csv(self, directory_path: Path, filename):
@@ -73,5 +73,5 @@ class OrganistionList(UserList):
             filename (str): filename
         """
         self.check_path_exists(directory_path)
-        file = directory_path.joinpath("{}.csv".format(filename))
+        file = directory_path.joinpath("{filename}.csv")
         self.dataframe().to_csv(file, index=False)
