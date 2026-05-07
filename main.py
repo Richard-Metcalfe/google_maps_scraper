@@ -8,17 +8,18 @@ from playwright.sync_api import sync_playwright
 from email_scraper import scape_emails_from_domains
 
 class Scraper:
-    def __init__(self, website: str, out_dir: pathlib.Path):
+    def __init__(self, website: str, out_dir: pathlib.Path, headless: bool = False):
         self.website = website
         self.output_dir = out_dir
+        self.headless = headless
 
     def scrape(self, category: str, location: str, item_count: int) -> OrganistionList:
         with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=False)
+            browser = pw.chromium.launch(headless=self.headless)
             page = browser.new_page()
 
             page.goto(self.website, timeout=10000)
-            #page.wait_for_timeout(1000)
+            page.wait_for_timeout(1000)
 
             #page.locator('//input[@id="searchboxinput"]').fill(f"{category} {location}", force=True)           
             # Use the role-based locator which is more reliable an id
@@ -59,6 +60,7 @@ class Scraper:
                         # In case retrieved all available listings then break from loop so as not to run infinitely 
                         listings = page.locator('//a[contains(@href, "{}")]'.format(place_addr)).all()
                         print("Retrieved all available: {}".format(len(listings)))
+                        bar()
                         break
                     elif current_count >= item_count:
                         listings = page.locator('//a[contains(@href, "{}")]'.format(place_addr)).all()[:item_count]
@@ -82,24 +84,55 @@ class Scraper:
             average_review_count_xpath = '//div[@jsaction="pane.reviewChart.moreReviews"]//span'
             average_review_points_xpath = '//div[@jsaction="pane.reviewChart.moreReviews"]//div[@role="img"]'
 
-            def extract_organisation_data(page, listing):
+            def extract_organisation_data(page, org_name):
                 org_obj = Organisation()
 
-                org_name = listing.get_attribute(name_attribute)
-                org_obj.organisation_name = org_name if org_name is not None and len(org_name) >= 1 else ""
+                # Cache locators and use `.first` instead of `.all()[0]`
+                location_el = page.locator(location_xpath).first
+                website_el = page.locator(website_xpath).first
+                contact_el = page.locator(contact_number_xpath).first
+                avg_review_count_el = page.locator(average_review_count_xpath).first
+                avg_review_points_el = page.locator(average_review_points_xpath).first
 
-                org_obj.organisation_location = page.locator(location_xpath).all()[0].inner_text() if page.locator(location_xpath).count() > 0 else ""
+                # org_name = listing.get_attribute(name_attribute)
+                org_obj.organisation_name = org_name if org_name else ""
 
-                org_obj.website = page.locator(website_xpath).all()[0].inner_text() if page.locator(website_xpath).count() > 0 else ""
+                # Location
+                org_obj.organisation_location = (location_el.inner_text() if location_el.count() > 0 else "")
 
-                org_obj.contact_number = page.locator(contact_number_xpath).all()[0].inner_text() if page.locator(contact_number_xpath).count() > 0 else ""
+                # Website
+                org_obj.website = (website_el.inner_text() if website_el.count() > 0 else "")
 
-                org_obj.average_review_count = int(page.locator(average_review_count_xpath).inner_text().split()[0].replace(',', '').strip()) if page.locator(average_review_count_xpath).count() > 0 else 0
+                # Contact number
+                org_obj.contact_number = (contact_el.inner_text() if contact_el.count() > 0 else "")
 
-                review_points = page.locator(average_review_points_xpath).get_attribute(name_attribute)
-                org_obj.average_review_points = float(review_points.split()[0].replace(',', '.').strip()) if page.locator(average_review_points_xpath).count() > 0 and review_points is not None else 0.0
+                # Average review count
+                if avg_review_count_el.count() > 0:
+                    raw_text = avg_review_count_el.inner_text().strip()
+                    first_token = raw_text.split()[0]
+                    try:
+                        org_obj.average_review_count = int(first_token.replace(",", ""))
+                    except ValueError:
+                        org_obj.average_review_count = 0
+                else:
+                    org_obj.average_review_count = 0
+
+                # Average review points
+                if avg_review_points_el.count() > 0:
+                    review_points = avg_review_points_el.get_attribute(name_attribute)
+                    if review_points:
+                        first_token = review_points.split()[0]
+                        try:
+                            org_obj.average_review_points = float(first_token.replace(",", "."))
+                        except ValueError:
+                            org_obj.average_review_points = 0.0
+                    else:
+                        org_obj.average_review_points = 0.0
+                else:
+                    org_obj.average_review_points = 0.0
 
                 return org_obj
+
 
             with alive_bar(len(listings)) as bar:
                 for listing in listings:
@@ -107,15 +140,17 @@ class Scraper:
                     # Wait for the details pane (address) to update instead of sleeping
                     page.locator(location_xpath).first.wait_for(state="visible", timeout=10000)
                     
-                    org_obj = extract_organisation_data(page, listing)
+                    org_obj = extract_organisation_data(page, listing.get_attribute(name_attribute))
                     org_list.append(org_obj)
                     bar()
 
             browser.close()
             return org_list    
 
+# hardcode website for now
+DEFAULT_BASE_URL = "https://www.google.com/maps"
 
-def main(category: str, location: str, item_count: int, out_dir: pathlib.Path, scrape_emails: bool):
+def main(category: str, location: str, item_count: int, out_dir: pathlib.Path, scrape_emails: bool, base_url: str = DEFAULT_BASE_URL):
     if not out_dir.exists():
         print(f"Output directory {out_dir} does not exist, creating it")
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -123,8 +158,7 @@ def main(category: str, location: str, item_count: int, out_dir: pathlib.Path, s
         print(f"Output directory {out_dir} is not a directory, you must specify a directory")
         sys.exit(1)
 
-    # hardcoode website for now
-    scrapper_instance = Scraper("https://www.google.com/maps", out_dir)
+    scrapper_instance = Scraper(base_url, out_dir)
     org_list = scrapper_instance.scrape(category, location, item_count)
 
     file_suffix = "google_maps"
